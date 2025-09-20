@@ -1,0 +1,36 @@
+# Update requirements.txt for Python 3.13
+# Core async HTTP client for web crawling
+httpx>=0.25.0
+
+# Data validation and serialization (Python 3.13 compatible)
+pydantic>=2.8.0
+pydantic-settings>=2.0.0
+
+# MongoDB driver for async operations
+motor>=3.3.0
+
+# HTML parsing for web scraping (using built-in parser)
+beautifulsoup4>=4.12.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Async utilities and decorators
+asyncio-throttle>=1.0.0
+
+# Logging and monitoring
+structlog>=23.0.0
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+
+# Part 2: Scheduler and Change Detection
+# Advanced Python Scheduler
+APScheduler>=3.10.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.7.0
