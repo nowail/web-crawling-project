@@ -99,6 +99,7 @@ class CrawlerConfig(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra fields from .env
     
     def get_log_file_path(self) -> Optional[Path]:
         """Get log file path as Path object."""
