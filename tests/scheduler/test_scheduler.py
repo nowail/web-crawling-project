@@ -580,8 +580,11 @@ class TestChangeDetector:
         )
     
     @pytest.mark.asyncio
-    async def test_detect_changes_no_books(self, change_detector, mock_db_manager):
+    async def test_detect_changes_no_books(self, change_detector, mock_db_manager, mock_fingerprint_manager):
         """Test change detection with no books."""
+        # Mock the cleanup method to return 0
+        mock_fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock the _get_stored_books method directly to avoid database cursor issues
         with patch.object(change_detector, '_get_stored_books', return_value=[]) as mock_get_books:
             result = await change_detector.detect_changes(max_books=10)
@@ -594,6 +597,9 @@ class TestChangeDetector:
     @pytest.mark.asyncio
     async def test_detect_changes_with_changes(self, change_detector, mock_db_manager, mock_fingerprint_manager, sample_book_data):
         """Test change detection with actual changes."""
+        # Mock the cleanup method to return 0
+        mock_fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock the _get_stored_books method directly to avoid database cursor issues
         with patch.object(change_detector, '_get_stored_books', return_value=[sample_book_data.model_dump()]) as mock_get_books:
             # Mock fingerprint comparison to detect changes
@@ -634,8 +640,11 @@ class TestChangeDetector:
             mock_get_books.assert_called_once_with(1, True)
     
     @pytest.mark.asyncio
-    async def test_detect_changes_database_error(self, change_detector, mock_db_manager):
+    async def test_detect_changes_database_error(self, change_detector, mock_db_manager, mock_fingerprint_manager):
         """Test change detection with database error."""
+        # Mock the cleanup method to return 0
+        mock_fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock the _get_stored_books method to raise the database error
         with patch.object(change_detector, '_get_stored_books', side_effect=Exception("Database connection failed")):
             result = await change_detector.detect_changes(max_books=10)
@@ -1037,6 +1046,9 @@ class TestSchedulerErrorScenarios:
     @pytest.mark.asyncio
     async def test_change_detection_database_connection_error(self, change_detector_with_errors, mock_db_manager_with_errors):
         """Test change detection with database connection error."""
+        # Mock the fingerprint manager cleanup method
+        change_detector_with_errors.fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock the _get_stored_books method to raise the connection error
         with patch.object(change_detector_with_errors, '_get_stored_books', side_effect=Exception("Connection refused")):
             result = await change_detector_with_errors.detect_changes(max_books=10)
@@ -1048,6 +1060,9 @@ class TestSchedulerErrorScenarios:
     @pytest.mark.asyncio
     async def test_change_detection_timeout_error(self, change_detector_with_errors, mock_db_manager_with_errors):
         """Test change detection with timeout error."""
+        # Mock the fingerprint manager cleanup method
+        change_detector_with_errors.fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock the _get_stored_books method to raise the timeout error
         with patch.object(change_detector_with_errors, '_get_stored_books', side_effect=asyncio.TimeoutError("Operation timed out")):
             result = await change_detector_with_errors.detect_changes(max_books=10)
@@ -1059,6 +1074,9 @@ class TestSchedulerErrorScenarios:
     @pytest.mark.asyncio
     async def test_change_detection_malformed_data(self, change_detector_with_errors, mock_db_manager_with_errors):
         """Test change detection with malformed book data."""
+        # Mock the fingerprint manager cleanup method
+        change_detector_with_errors.fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
+        
         # Mock malformed book data
         malformed_data = {
             "name": None,  # Invalid None value
@@ -1205,6 +1223,7 @@ class TestSchedulerNetworkEdgeCases:
         mock_db_manager.database = AsyncMock()
         
         mock_fingerprint_manager = AsyncMock()
+        mock_fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
         change_detector = ChangeDetector(mock_db_manager, mock_fingerprint_manager)
         
         # Mock the _get_stored_books method to raise the timeout error
@@ -1222,6 +1241,7 @@ class TestSchedulerNetworkEdgeCases:
         mock_db_manager.collection = AsyncMock()
         
         mock_fingerprint_manager = AsyncMock()
+        mock_fingerprint_manager.cleanup_orphaned_fingerprints.return_value = 0
         change_detector = ChangeDetector(mock_db_manager, mock_fingerprint_manager)
         
         # Mock the _get_stored_books method to raise the connection error
