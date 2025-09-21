@@ -121,7 +121,7 @@ class ChangeResponse(BaseModel):
     old_value: Optional[str] = Field(None, description="Previous value")
     new_value: Optional[str] = Field(None, description="New value")
     change_summary: str = Field(..., description="Human-readable change summary")
-    detected_at: datetime = Field(..., description="When the change was detected")
+    detected_at: str = Field(..., description="When the change was detected")
     confidence_score: float = Field(..., ge=0, le=1, description="Confidence in the change detection")
 
     class Config:
