@@ -1,0 +1,27 @@
+[Unit]
+Description=Filers Keepers Scheduler Daemon
+After=network.target mongodb.service
+Wants=mongodb.service
+
+[Service]
+Type=simple
+User=dev
+Group=dev
+WorkingDirectory=/Users/dev/Desktop/Assessments/FilersKeepersAssessment
+ExecStart=/usr/bin/python3 /Users/dev/Desktop/Assessments/FilersKeepersAssessment/scheduler_daemon.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/Users/dev/Desktop/Assessments/FilersKeepersAssessment
+Environment=MONGODB_URL=mongodb://localhost:27017
+Environment=MONGODB_DATABASE=filers_keepers
+Environment=SCHEDULE_HOUR=2
+Environment=SCHEDULE_MINUTE=0
+Environment=TIMEZONE=UTC
+
+[Install]
+WantedBy=multi-user.target
