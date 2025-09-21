@@ -129,9 +129,15 @@ class MongoDBManager:
                 fingerprint_manager = FingerprintManager(self)
                 fingerprint = fingerprint_manager.fingerprinter.generate_complete_fingerprint(book)
                 await fingerprint_manager.store_fingerprint(fingerprint)
-                logger.debug("Successfully created fingerprint", book_name=book.name)
+                logger.info("Successfully created fingerprint for new book", 
+                          book_name=book.name, 
+                          book_id=fingerprint.book_id,
+                          source_url=str(book.source_url))
             except Exception as e:
-                logger.warning("Failed to create fingerprint", book_name=book.name, error=str(e))
+                logger.error("Failed to create fingerprint for new book", 
+                           book_name=book.name, 
+                           source_url=str(book.source_url),
+                           error=str(e))
             
             return True
             
@@ -372,7 +378,7 @@ class MongoDBManager:
     
     async def delete_book(self, source_url: str) -> bool:
         """
-        Delete a book by source URL.
+        Delete a book by source URL and its associated fingerprint.
         
         Args:
             source_url: Source URL of the book to delete
@@ -381,10 +387,36 @@ class MongoDBManager:
             bool: True if deleted, False if not found
         """
         try:
+            # First, delete the book
             result = await self.collection.delete_one({"source_url": source_url})
             
             if result.deleted_count > 0:
                 logger.debug("Successfully deleted book", url=source_url)
+                
+                # Delete associated fingerprint
+                try:
+                    from scheduler.fingerprinting import FingerprintManager
+                    fingerprint_manager = FingerprintManager(self)
+                    
+                    # Generate book_id from source_url
+                    import hashlib
+                    book_id = f"book_{hashlib.md5(source_url.encode('utf-8')).hexdigest()}"
+                    
+                    # Delete the fingerprint
+                    fingerprint_deleted = await fingerprint_manager.delete_fingerprint(book_id)
+                    
+                    if fingerprint_deleted:
+                        logger.info("Successfully deleted book and its fingerprint", 
+                                  url=source_url, book_id=book_id)
+                    else:
+                        logger.warning("Book deleted but fingerprint not found", 
+                                     url=source_url, book_id=book_id)
+                        
+                except Exception as e:
+                    logger.error("Failed to delete fingerprint after book deletion", 
+                               url=source_url, error=str(e))
+                    # Don't fail the book deletion if fingerprint deletion fails
+                
                 return True
             else:
                 logger.warning("Book not found for deletion", url=source_url)
