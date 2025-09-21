@@ -227,7 +227,8 @@ class APIDatabaseService:
                 
                 # Convert datetime fields to ISO format strings for JSON serialization
                 if "detected_at" in change_doc and change_doc["detected_at"]:
-                    change_doc["detected_at"] = change_doc["detected_at"].isoformat()
+                    if hasattr(change_doc["detected_at"], 'isoformat'):
+                        change_doc["detected_at"] = change_doc["detected_at"].isoformat()
                 
                 changes.append(ChangeResponse(**change_doc))
 
@@ -266,32 +267,6 @@ class APIDatabaseService:
             logger.error("Failed to get book name", book_id=book_id, error=str(e))
             return None
 
-    async def get_stats(self) -> Dict:
-        """
-        Get database statistics.
-        
-        Returns:
-            Dictionary with statistics
-        """
-        try:
-            total_books = await self.books_collection.count_documents({})
-            total_changes = await self.changes_collection.count_documents({})
-            
-            # Get recent changes count (last 24 hours)
-            from datetime import timedelta
-            yesterday = datetime.utcnow() - timedelta(days=1)
-            recent_changes = await self.changes_collection.count_documents({
-                "detected_at": {"$gte": yesterday}
-            })
-            
-            return {
-                "total_books": total_books,
-                "total_changes": total_changes,
-                "recent_changes_24h": recent_changes
-            }
-        except Exception as e:
-            logger.error("Failed to get stats", error=str(e))
-            raise
 
     async def health_check(self) -> Dict:
         """
