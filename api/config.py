@@ -37,11 +37,6 @@ class APIConfig(BaseSettings):
     default_rate_limit: int = 100  # requests per hour
     rate_limit_window: int = 3600  # 1 hour in seconds
     
-    # CORS Settings
-    cors_origins: list = ["*"]  # Configure appropriately for production
-    cors_allow_credentials: bool = True
-    cors_allow_methods: list = ["*"]
-    cors_allow_headers: list = ["*"]
     
     # Logging
     log_level: str = "INFO"
