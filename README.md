@@ -37,7 +37,7 @@ Install and start MongoDB:
 # macOS with Homebrew
 brew install mongodb-community
 brew services start mongodb-community
-
+```
 
 ### 5. Environment Configuration
 Copy the example environment file:
