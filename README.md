@@ -49,11 +49,22 @@ Edit `.env` with your configuration:
 
 ## 🏃‍♂️ Running the System
 
+### 📸 Testing Screenshots & Documentation
+The `images/` folder contains comprehensive testing screenshots and documentation:
+- **Successful crawler run** - Screenshots showing the web crawler successfully extracting book data
+- **Successful scheduler run** - Screenshots demonstrating the change detection system working properly
+- **End-to-end workflow** - Complete testing flow with change logs and API responses
+- **API documentation** - Screenshots of the FastAPI Swagger UI and API endpoint testing results
+
+All testing has been completed and documented with visual proof of the system's functionality.
+
 ### 📚 Documentation Structure
 This project includes separate README files for each major component:
 - **`README_API.md`** - FastAPI REST API documentation and endpoints
 - **`README_DAEMON.md`** - Scheduler daemon setup and management
 - **`README.md`** - This main documentation file
+
+Here are the highlights of each part. For more details, visit the related README file:
 
 ### Part 1: Web Crawler
 
@@ -97,6 +108,13 @@ MIN_SEVERITY_FOR_EMAIL=medium
 # Reporting
 GENERATE_DAILY_REPORTS=true
 REPORT_FORMAT=json       # or csv
+```
+
+### Part 3: API testing
+
+#### Basic Usage
+```bash
+python3 run_api.py
 ```
 
 ## 🗄️ MongoDB Document Structure
