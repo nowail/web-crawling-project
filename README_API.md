@@ -23,7 +23,6 @@ A comprehensive RESTful API built with FastAPI for managing and monitoring book 
 
 ### System
 - `GET /health` - Health check (no auth required)
-- `GET /stats` - Database statistics
 
 ## 🔧 Installation
 
@@ -139,12 +138,6 @@ curl -H "Authorization: Bearer your_api_key" \
   "http://localhost:8000/changes?since=2025-09-21T00:00:00Z"
 ```
 
-### Get Statistics
-
-```bash
-curl -H "Authorization: Bearer your_api_key" \
-  "http://localhost:8000/stats"
-```
 
 ## 📊 Query Parameters
 
@@ -201,11 +194,6 @@ Once the API is running, visit:
 curl http://localhost:8000/health
 ```
 
-### Statistics
-```bash
-curl -H "Authorization: Bearer your_api_key" \
-  "http://localhost:8000/stats"
-```
 
 ## 🛠️ Development
 
