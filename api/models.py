@@ -114,7 +114,7 @@ class ChangeResponse(BaseModel):
     """Change response model for API."""
     change_id: str = Field(..., description="Unique change identifier")
     book_id: str = Field(..., description="Book identifier")
-    book_name: str = Field(..., description="Book name")
+    source_url: str = Field(..., description="Source URL of the book")
     change_type: ChangeType = Field(..., description="Type of change")
     severity: ChangeSeverity = Field(..., description="Change severity")
     field_name: str = Field(..., description="Field that changed")
@@ -122,6 +122,8 @@ class ChangeResponse(BaseModel):
     new_value: Optional[str] = Field(None, description="New value")
     change_summary: str = Field(..., description="Human-readable change summary")
     detected_at: str = Field(..., description="When the change was detected")
+    processed_at: Optional[str] = Field(None, description="When the change was processed")
+    processed: bool = Field(..., description="Whether the change has been processed")
     confidence_score: float = Field(..., ge=0, le=1, description="Confidence in the change detection")
 
     class Config:

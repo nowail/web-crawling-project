@@ -209,10 +209,6 @@ class APIDatabaseService:
             # Convert to response models
             changes = []
             for change_doc in changes_docs:
-                # Get book name for the change
-                book_name = await self._get_book_name_by_id(change_doc.get("book_id", ""))
-                change_doc["book_name"] = book_name or "Unknown Book"
-                
                 # Convert old_value and new_value to strings for JSON serialization
                 if "old_value" in change_doc:
                     if change_doc["old_value"] is not None:
@@ -230,6 +226,14 @@ class APIDatabaseService:
                     if hasattr(change_doc["detected_at"], 'isoformat'):
                         change_doc["detected_at"] = change_doc["detected_at"].isoformat()
                 
+                if "processed_at" in change_doc and change_doc["processed_at"]:
+                    if hasattr(change_doc["processed_at"], 'isoformat'):
+                        change_doc["processed_at"] = change_doc["processed_at"].isoformat()
+                    else:
+                        change_doc["processed_at"] = None
+                else:
+                    change_doc["processed_at"] = None
+                
                 changes.append(ChangeResponse(**change_doc))
 
             return ChangeListResponse(
@@ -246,26 +250,6 @@ class APIDatabaseService:
             logger.error("Failed to get changes", error=str(e), query_params=query_params.dict())
             raise
 
-    async def _get_book_name_by_id(self, book_id: str) -> Optional[str]:
-        """
-        Get book name by book_id.
-        
-        Args:
-            book_id: Book identifier
-            
-        Returns:
-            Book name if found, None otherwise
-        """
-        try:
-            # Try to find book by source_url (since book_id is derived from source_url)
-            # This is a simplified lookup - in a real system you might want to store book_id in the books collection
-            book_doc = await self.books_collection.find_one({"source_url": {"$regex": book_id.replace("book_", ""), "$options": "i"}})
-            if book_doc:
-                return book_doc.get("name", "Unknown Book")
-            return None
-        except Exception as e:
-            logger.error("Failed to get book name", book_id=book_id, error=str(e))
-            return None
 
 
     async def health_check(self) -> Dict:
