@@ -8,7 +8,6 @@ from typing import Dict
 
 import structlog
 from fastapi import FastAPI, HTTPException, Depends, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -99,14 +98,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 # Exception handlers
@@ -332,27 +323,6 @@ async def get_changes(
         )
 
 
-# Statistics endpoint
-@app.get("/stats", tags=["Statistics"])
-async def get_stats(api_key: str = Depends(verify_api_key)):
-    """Get database statistics."""
-    try:
-        stats = await db_service.get_stats()
-        
-        # Add rate limit headers
-        headers = get_rate_limit_headers(api_key)
-        
-        return JSONResponse(
-            content=stats,
-            headers=headers
-        )
-        
-    except Exception as e:
-        logger.error("Failed to get stats", error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve statistics"
-        )
 
 
 if __name__ == "__main__":
