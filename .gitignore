@@ -78,3 +78,5 @@ coverage.xml
 *.temp
 crawl_state.json
 reports/
+scheduler_daemon.pid
+scheduler_daemon.log/

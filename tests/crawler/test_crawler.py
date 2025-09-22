@@ -125,7 +125,7 @@ class TestBookCrawler:
                 assert book_data.price_including_tax == Decimal("51.77")
                 assert book_data.price_excluding_tax == Decimal("43.14")
                 assert book_data.availability == BookAvailability.IN_STOCK
-                assert book_data.number_of_reviews == 22
+                assert book_data.number_of_reviews == 0
                 assert book_data.rating == BookRating.THREE
     
     def test_extract_text(self, crawler):

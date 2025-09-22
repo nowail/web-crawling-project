@@ -277,7 +277,7 @@ class BookCrawler:
             availability = BookAvailability.IN_STOCK if "in stock" in availability_text.lower() else BookAvailability.OUT_OF_STOCK
             
             # Extract number of reviews
-            reviews_text = self._extract_text(book_soup, 'table.table tr:nth-of-type(6) td')
+            reviews_text = self._extract_text(book_soup, 'table.table tr:nth-of-type(7) td')
             number_of_reviews = int(re.findall(r'\d+', reviews_text)[0]) if re.findall(r'\d+', reviews_text) else 0
             
             # Extract image URL
