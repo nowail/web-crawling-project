@@ -22,10 +22,11 @@ wheels/
 MANIFEST
 
 # Virtual Environment
-path/to/venv/
+path/
 venv/
 env/
 ENV/
+.venv/
 
 # IDE
 .vscode/
@@ -76,7 +77,22 @@ coverage.xml
 # Temporary files
 *.tmp
 *.temp
+
+# Runtime files
 crawl_state.json
-reports/
 scheduler_daemon.pid
-scheduler_daemon.log/
+scheduler_daemon.log
+
+# Generated reports and logs
+reports/
+logs/
+
+# API keys and secrets
+*.key
+*.pem
+secrets/
+
+# Backup files
+*.bak
+*.backup
+*~
