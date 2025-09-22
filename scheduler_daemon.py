@@ -14,7 +14,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-import structlog
+import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
@@ -26,7 +26,7 @@ sys.path.insert(0, str(project_root))
 from utilities.logger import setup_logging
 from utilities.config import config
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SchedulerDaemon:
@@ -36,7 +36,7 @@ class SchedulerDaemon:
         """Initialize the scheduler daemon."""
         self.scheduler = AsyncIOScheduler(timezone=config.timezone)
         self.running = False
-        self.logger = logger.bind(component="scheduler_daemon")
+        self.logger = logger
         
         # Setup signal handlers for graceful shutdown
         self._setup_signal_handlers()
@@ -57,20 +57,11 @@ class SchedulerDaemon:
     def _setup_scheduler_listeners(self) -> None:
         """Setup scheduler event listeners."""
         def job_executed_listener(event):
-            self.logger.info(
-                "Scheduled job executed successfully",
-                job_id=event.job_id,
-                job_name=event.job_id,
-                duration=event.retval.get('duration', 0) if event.retval else 0
-            )
+            duration = event.retval.get('duration', 0) if event.retval else 0
+            self.logger.info(f"Scheduled job executed successfully - job_id: {event.job_id}, duration: {duration}")
         
         def job_error_listener(event):
-            self.logger.error(
-                "Scheduled job execution failed",
-                job_id=event.job_id,
-                job_name=event.job_id,
-                error=str(event.exception)
-            )
+            self.logger.error(f"Scheduled job execution failed - job_id: {event.job_id}, error: {str(event.exception)}")
         
         self.scheduler.add_listener(job_executed_listener, EVENT_JOB_EXECUTED)
         self.scheduler.add_listener(job_error_listener, EVENT_JOB_ERROR)
@@ -87,13 +78,7 @@ class SchedulerDaemon:
             self.scheduler.start()
             self.running = True
             
-            self.logger.info(
-                "Scheduler Daemon started successfully",
-                schedule_hour=config.schedule_hour,
-                schedule_minute=config.schedule_minute,
-                timezone=config.timezone,
-                next_run=self._get_next_run_time()
-            )
+            self.logger.info(f"Scheduler Daemon started successfully - schedule: {config.schedule_hour:02d}:{config.schedule_minute:02d}, timezone: {config.timezone}, next_run: {self._get_next_run_time()}")
             
             print("\n" + "="*70)
             print("🚀 SCHEDULER DAEMON STARTED")
@@ -115,10 +100,7 @@ class SchedulerDaemon:
                 self.stop()
                 
         except Exception as e:
-            self.logger.error(
-                "Failed to start scheduler daemon",
-                error=str(e)
-            )
+            self.logger.error(f"Failed to start scheduler daemon - error: {str(e)}")
             raise
     
     async def _add_scheduled_job(self) -> None:
@@ -137,18 +119,10 @@ class SchedulerDaemon:
                 replace_existing=True
             )
             
-            self.logger.info(
-                "Added scheduled job",
-                hour=config.schedule_hour,
-                minute=config.schedule_minute,
-                timezone=config.timezone
-            )
+            self.logger.info(f"Added scheduled job - hour: {config.schedule_hour}, minute: {config.schedule_minute}, timezone: {config.timezone}")
             
         except Exception as e:
-            self.logger.error(
-                "Failed to add scheduled job",
-                error=str(e)
-            )
+            self.logger.error(f"Failed to add scheduled job - error: {str(e)}")
             raise
     
     async def _run_scheduler_job(self) -> dict:
@@ -156,10 +130,7 @@ class SchedulerDaemon:
         start_time = datetime.utcnow()
         job_id = f"scheduler_run_{start_time.strftime('%Y%m%d_%H%M%S')}"
         
-        self.logger.info(
-            "Starting scheduled scheduler execution",
-            job_id=job_id
-        )
+        self.logger.info(f"Starting scheduled scheduler execution - job_id: {job_id}")
         
         try:
             # Change to project directory
@@ -168,11 +139,7 @@ class SchedulerDaemon:
             # Run scheduler_main.py with --once flag
             cmd = [sys.executable, "scheduler_main.py", "--once"]
             
-            self.logger.info(
-                "Executing scheduler command",
-                command=" ".join(cmd),
-                working_directory=str(project_root)
-            )
+            self.logger.info(f"Executing scheduler command: {' '.join(cmd)}, working_directory: {project_root}")
             
             # Execute the command
             process = await asyncio.create_subprocess_exec(
@@ -196,15 +163,11 @@ class SchedulerDaemon:
             
             # Check return code
             if process.returncode == 0:
-                self.logger.info(
-                    "Scheduler execution completed successfully",
-                    job_id=job_id,
-                    return_code=process.returncode
-                )
+                self.logger.info(f"Scheduler execution completed successfully - job_id: {job_id}, return_code: {process.returncode}")
                 
                 # Log stdout if available
                 if stdout:
-                    self.logger.debug("Scheduler stdout", output=stdout.decode().strip())
+                    self.logger.debug(f"Scheduler stdout: {stdout.decode().strip()}")
                 
                 result = {
                     'job_id': job_id,
@@ -214,12 +177,8 @@ class SchedulerDaemon:
                 }
                 
             else:
-                self.logger.error(
-                    "Scheduler execution failed",
-                    job_id=job_id,
-                    return_code=process.returncode,
-                    stderr=stderr.decode().strip() if stderr else None
-                )
+                stderr_output = stderr.decode().strip() if stderr else None
+                self.logger.error(f"Scheduler execution failed - job_id: {job_id}, return_code: {process.returncode}, stderr: {stderr_output}")
                 
                 result = {
                     'job_id': job_id,
@@ -232,11 +191,7 @@ class SchedulerDaemon:
             return result
             
         except Exception as e:
-            self.logger.error(
-                "Scheduler execution failed with exception",
-                job_id=job_id,
-                error=str(e)
-            )
+            self.logger.error(f"Scheduler execution failed with exception - job_id: {job_id}, error: {str(e)}")
             return {
                 'job_id': job_id,
                 'success': False,
@@ -268,10 +223,7 @@ class SchedulerDaemon:
             self.logger.info("Scheduler Daemon stopped")
             
         except Exception as e:
-            self.logger.error(
-                "Error stopping scheduler daemon",
-                error=str(e)
-            )
+            self.logger.error(f"Error stopping scheduler daemon - error: {str(e)}")
     
     def get_status(self) -> dict:
         """Get daemon status information."""
@@ -296,10 +248,7 @@ class SchedulerDaemon:
             }
             
         except Exception as e:
-            self.logger.error(
-                "Failed to get daemon status",
-                error=str(e)
-            )
+            self.logger.error(f"Failed to get daemon status - error: {str(e)}")
             return {
                 'running': False,
                 'error': str(e)
@@ -317,7 +266,7 @@ async def main():
             debug=config.debug
         )
         
-        logger = structlog.get_logger(__name__)
+        logger = logging.getLogger(__name__)
         logger.info("Starting Scheduler Daemon")
         
         # Create and start daemon
@@ -331,7 +280,7 @@ async def main():
             print("Received keyboard interrupt, shutting down...")
     except Exception as e:
         try:
-            logger.error("Failed to start scheduler daemon", error=str(e))
+            logger.error(f"Failed to start scheduler daemon - error: {str(e)}")
         except NameError:
             print(f"Failed to start scheduler daemon: {str(e)}")
         sys.exit(1)

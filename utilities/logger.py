@@ -29,39 +29,9 @@ def setup_logging(
     
     # Configure standard library logging
     logging.basicConfig(
-        format="%(message)s",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
         level=getattr(logging, log_level.upper()),
-    )
-    
-    # Configure structlog processors
-    processors = [
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-    ]
-    
-    # Add format-specific processors
-    if log_format == "json":
-        processors.append(structlog.processors.JSONRenderer())
-    elif log_format == "console":
-        processors.append(structlog.dev.ConsoleRenderer(colors=True))
-    else:
-        # Default to console for development
-        processors.append(structlog.dev.ConsoleRenderer(colors=True))
-    
-    # Configure structlog
-    structlog.configure(
-        processors=processors,
-        wrapper_class=structlog.stdlib.BoundLogger,
-        logger_factory=LoggerFactory(),
-        context_class=dict,
-        cache_logger_on_first_use=True,
     )
     
     # Set up file logging if specified
@@ -73,49 +43,28 @@ def setup_logging(
         file_handler.setLevel(getattr(logging, log_level.upper()))
         
         # Use JSON format for file logs
-        file_formatter = logging.Formatter('%(message)s')
+        file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(file_formatter)
         
         # Add handler to root logger
         root_logger = logging.getLogger()
         root_logger.addHandler(file_handler)
     
-    # Enable debug mode if requested
-    if debug:
-        structlog.configure(
-            processors=processors + [structlog.processors.CallsiteParameterAdder()],
-            wrapper_class=structlog.stdlib.BoundLogger,
-            logger_factory=LoggerFactory(),
-            context_class=dict,
-            cache_logger_on_first_use=True,
-        )
-    
-    # Log configuration
-    logger = structlog.get_logger(__name__)
-    try:
-        logger.info(
-            "Logging system initialized",
-            level=log_level,
-            format=log_format,
-            file=str(log_file) if log_file else None,
-            debug=debug
-        )
-    except Exception:
-        # Fallback to simple logging if structlog fails
-        print(f"Logging system initialized - Level: {log_level}, Format: {log_format}")
+    # Simple fallback logging setup
+    print(f"Logging system initialized - Level: {log_level}, Format: {log_format}")
 
 
-def get_logger(name: str) -> structlog.BoundLogger:
+def get_logger(name: str):
     """
-    Get a structured logger instance.
+    Get a logger instance.
     
     Args:
         name: Logger name (usually __name__)
         
     Returns:
-        Configured structlog logger
+        Configured logger
     """
-    return structlog.get_logger(name)
+    return logging.getLogger(name)
 
 
 class CrawlLogger:

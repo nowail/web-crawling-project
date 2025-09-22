@@ -15,6 +15,7 @@ from crawler.database import MongoDBManager
 from crawler.book_crawler import BookCrawler
 from utilities.config import config
 from utilities.logger import setup_logging, get_logger
+import logging
 
 
 async def main():
@@ -27,7 +28,8 @@ async def main():
         debug=config.debug
     )
     
-    logger = get_logger(__name__)
+    # Use standard logging
+    logger = logging.getLogger(__name__)
     logger.info("Starting FilersKeepers Assessment Crawler")
     
     try:
@@ -51,27 +53,18 @@ async def main():
         
         # Log results
         if result.success:
-            logger.info(
-                "Crawl completed successfully",
-                books_crawled=result.books_crawled,
-                duration_seconds=result.duration_seconds
-            )
+            logger.info(f"Crawl completed successfully - books_crawled: {result.books_crawled}, duration_seconds: {result.duration_seconds}")
         else:
-            logger.error(
-                "Crawl completed with errors",
-                books_crawled=result.books_crawled,
-                errors=len(result.errors),
-                duration_seconds=result.duration_seconds
-            )
+            logger.error(f"Crawl completed with errors - books_crawled: {result.books_crawled}, errors: {len(result.errors)}, duration_seconds: {result.duration_seconds}")
             for error in result.errors:
-                logger.error("Crawl error", error=error)
+                logger.error(f"Crawl error: {error}")
         
         # Get database statistics
         stats = await db_manager.get_database_stats()
-        logger.info("Database statistics", **stats)
+        logger.info(f"Database statistics: {stats}")
         
     except Exception as e:
-        logger.error("Fatal error occurred", error=str(e))
+        logger.error(f"Fatal error occurred: {str(e)}")
         sys.exit(1)
     
     finally:
